@@ -1,0 +1,96 @@
+///////////////////////////////////////////////////////////////////////////////FSM
+reg [10:0]S;
+reg [10:0]NS;
+parameter before = 11'd0, start = 11'd1, ball_move_up = 11'd2, collision = 11'd3, ball_move_down = 11'd4;
+
+wire collide;
+assign collide = ((B) == (~G)); ////checks if ball (all blue) == block (red and blue) 
+
+wire paddle_hit;
+assign paddle_hit = ((B) == (~R)); /// checks if ball (all blue) == paddle (green and blue)
+
+//////////////////////////////////////////reset
+always @ (posedge update or negedge rst)
+begin
+if (rst == 1'd0)
+	S <= 11'd0;
+else
+	S <= NS;
+end
+
+////////////////////////////////////////state transitions
+always @ (*)
+case (S)
+before: 
+	begin
+	if (rst == 1'd0)
+		NS = before;
+	else
+		NS = start;
+	end
+
+start:
+	begin
+	if (start_game == 1'd0)
+		NS = start;
+	else
+		NS = ball_move_up;
+	end		
+
+ball_move_up:
+	begin
+	if (collide == 1'd0)
+		NS = ball_move_up;
+	else 
+		NS = collision;
+	end
+
+collision:
+	begin
+	if (collide == 1'd1)
+		NS = collision;
+	else
+		NS = ball_move_down;
+	end
+
+ball_move_down:
+	begin
+	if (paddle_hit == 1'd0)
+		NS = ball_move_down;
+	else
+		NS = ball_move_up;
+	end
+
+default:
+	NS = before;
+endcase	
+
+////////////////////////////////////////////state definitions
+always @ (posedge update)
+if (rst==1'd0)
+	begin	
+		x_pad <= 11'd290; 
+		y_pad <= 11'd465;
+	
+		x_ball <= 11'd315;
+		y_ball <= 11'd444;
+		
+		x_block <= 11'd315;
+		y_block <= 11'd0;
+	end
+else
+	case (S)
+	ball_move_up:
+	y_ball <= y_ball - 11'd20;
+	
+	collision:
+	begin
+	x_block <= 11'd700;
+	y_block <= 11'd500;
+	end
+	
+	ball_move_down:
+	y_ball <= y_ball + 11'd20;
+	
+	endcase	
+//////////////////////////////////////////////////////////////////////////////////////FSM
