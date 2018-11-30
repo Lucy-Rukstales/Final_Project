@@ -1,3 +1,6 @@
+// Task list: fix bouncing for corner hits, don't let paddle leave screen, start/stop screens, ball moves with paddle @ start, score counter
+
+
 module Phase_2(clk, rst, key, start_game, DAC_clk, VGA_R, VGA_G, VGA_B, VGA_Hsync, 
 					VGA_Vsync, blank_n, KB_clk, data);
 					
@@ -83,43 +86,43 @@ parameter before = 11'd0, start = 11'd1, ball_move_up = 11'd2, collision = 11'd3
 
 // Check if the ball hits a brick from the top or bottom (bottom)
 wire hit_block1;
-assign hit_block1 = (((y_block1+5'd30)==y_ball) && (x_ball > (x_block1-5'd10)) && (x_ball < (x_block1 + 8'd70))) ? 1'b1 : 1'b0;
+assign hit_block1 = ((((y_block1+5'd30)==y_ball) && (x_ball > (x_block1-5'd10)) && (x_ball < (x_block1 + 8'd70))) || ((y_block1==(y_ball+5'd20)) && (x_ball > (x_block1-5'd10)) && (x_ball < (x_block1 + 8'd70)))) ? 1'b1 : 1'b0;
 wire hit_block2;
-assign hit_block2 = (((y_block2+5'd30)==y_ball) && (x_ball > (x_block2-5'd10)) && (x_ball < (x_block2 + 8'd70))) ? 1'b1 : 1'b0;
+assign hit_block2 = ((((y_block2+5'd30)==y_ball) && (x_ball > (x_block2-5'd10)) && (x_ball < (x_block2 + 8'd70))) || ((y_block2==(y_ball+5'd20)) && (x_ball > (x_block2-5'd10)) && (x_ball < (x_block2 + 8'd70)))) ? 1'b1 : 1'b0;
 wire hit_block3;
-assign hit_block3 = (((y_block3+5'd30)==y_ball) && (x_ball > (x_block3-5'd10)) && (x_ball < (x_block3 + 8'd70))) ? 1'b1 : 1'b0;
+assign hit_block3 = ((((y_block3+5'd30)==y_ball) && (x_ball > (x_block3-5'd10)) && (x_ball < (x_block3 + 8'd70))) || ((y_block3==(y_ball+5'd20)) && (x_ball > (x_block3-5'd10)) && (x_ball < (x_block3 + 8'd70)))) ? 1'b1 : 1'b0;
 wire hit_block4;
-assign hit_block4 = (((y_block4+5'd30)==y_ball) && (x_ball > (x_block4-5'd10)) && (x_ball < (x_block4 + 8'd70))) ? 1'b1 : 1'b0;
+assign hit_block4 = ((((y_block4+5'd30)==y_ball) && (x_ball > (x_block4-5'd10)) && (x_ball < (x_block4 + 8'd70))) || ((y_block4==(y_ball+5'd20)) && (x_ball > (x_block4-5'd10)) && (x_ball < (x_block4 + 8'd70)))) ? 1'b1 : 1'b0;
 wire hit_block5;
-assign hit_block5 = (((y_block5+5'd30)==y_ball) && (x_ball > (x_block5-5'd10)) && (x_ball < (x_block5 + 8'd70))) ? 1'b1 : 1'b0;
+assign hit_block5 = ((((y_block5+5'd30)==y_ball) && (x_ball > (x_block5-5'd10)) && (x_ball < (x_block5 + 8'd70))) || ((y_block5==(y_ball+5'd20)) && (x_ball > (x_block5-5'd10)) && (x_ball < (x_block5 + 8'd70)))) ? 1'b1 : 1'b0;
 wire hit_block6;
-assign hit_block6 = (((y_block6+5'd30)==y_ball) && (x_ball > (x_block6-5'd10)) && (x_ball < (x_block6 + 8'd70))) ? 1'b1 : 1'b0;
+assign hit_block6 = ((((y_block6+5'd30)==y_ball) && (x_ball > (x_block6-5'd10)) && (x_ball < (x_block6 + 8'd70))) || ((y_block6==(y_ball+5'd20)) && (x_ball > (x_block6-5'd10)) && (x_ball < (x_block6 + 8'd70)))) ? 1'b1 : 1'b0;
 wire hit_block7;
-assign hit_block7 = (((y_block7+5'd30)==y_ball) && (x_ball > (x_block7-5'd10)) && (x_ball < (x_block7 + 8'd70))) ? 1'b1 : 1'b0;
+assign hit_block7 = ((((y_block7+5'd30)==y_ball) && (x_ball > (x_block7-5'd10)) && (x_ball < (x_block7 + 8'd70))) || ((y_block7==(y_ball+5'd20)) && (x_ball > (x_block7-5'd10)) && (x_ball < (x_block7 + 8'd70)))) ? 1'b1 : 1'b0;
 wire hit_block8;
-assign hit_block8 = (((y_block8+5'd30)==y_ball) && (x_ball > (x_block8-5'd10)) && (x_ball < (x_block8 + 8'd70))) ? 1'b1 : 1'b0;
+assign hit_block8 = ((((y_block8+5'd30)==y_ball) && (x_ball > (x_block8-5'd10)) && (x_ball < (x_block8 + 8'd70))) || ((y_block8==(y_ball+5'd20)) && (x_ball > (x_block8-5'd10)) && (x_ball < (x_block8 + 8'd70)))) ? 1'b1 : 1'b0;
 wire hit_block9;
-assign hit_block9 = (((y_block9+5'd30)==y_ball) && (x_ball > (x_block9-5'd10)) && (x_ball < (x_block9 + 8'd70))) ? 1'b1 : 1'b0;
+assign hit_block9 = ((((y_block9+5'd30)==y_ball) && (x_ball > (x_block9-5'd10)) && (x_ball < (x_block9 + 8'd70))) || ((y_block9==(y_ball+5'd20)) && (x_ball > (x_block9-5'd10)) && (x_ball < (x_block9 + 8'd70)))) ? 1'b1 : 1'b0;
 
 // Check if the ball hits a brick from the left or the right (left)
 wire hit_side_block1;
-assign hit_side_block1 = ((x_block1==(x_ball+5'd20)) && (y_ball > y_block1-5'd10) && (y_ball < (y_block1 + 8'd20))) ? 1'b1 : 1'b0;
+assign hit_side_block1 = (((x_block1==(x_ball+5'd20)) && (y_ball > y_block1-5'd10) && (y_ball < (y_block1 + 8'd20))) || (((x_block1 + 11'd80)==x_ball) && (y_ball > y_block1-5'd10) && (y_ball < (y_block1 + 8'd20)))) ? 1'b1 : 1'b0;
 wire hit_side_block2;
-assign hit_side_block2 = ((x_block2==(x_ball+5'd20)) && (y_ball > y_block2-5'd10) && (y_ball < (y_block2 + 8'd20))) ? 1'b1 : 1'b0;
+assign hit_side_block2 = (((x_block2==(x_ball+5'd20)) && (y_ball > y_block2-5'd10) && (y_ball < (y_block2 + 8'd20))) || (((x_block2 + 11'd80)==x_ball) && (y_ball > y_block2-5'd10) && (y_ball < (y_block2 + 8'd20)))) ? 1'b1 : 1'b0;
 wire hit_side_block3;
-assign hit_side_block3 = ((x_block3==(x_ball+5'd20)) && (y_ball > y_block3-5'd10) && (y_ball < (y_block3 + 8'd20))) ? 1'b1 : 1'b0;
+assign hit_side_block3 = (((x_block3==(x_ball+5'd20)) && (y_ball > y_block3-5'd10) && (y_ball < (y_block3 + 8'd20))) || (((x_block3 + 11'd80)==x_ball) && (y_ball > y_block3-5'd10) && (y_ball < (y_block3 + 8'd20)))) ? 1'b1 : 1'b0;
 wire hit_side_block4;
-assign hit_side_block4 = ((x_block4==(x_ball+5'd20)) && (y_ball > y_block4-5'd10) && (y_ball < (y_block4 + 8'd20))) ? 1'b1 : 1'b0;
+assign hit_side_block4 = (((x_block4==(x_ball+5'd20)) && (y_ball > y_block4-5'd10) && (y_ball < (y_block4 + 8'd20))) || (((x_block4 + 11'd80)==x_ball) && (y_ball > y_block4-5'd10) && (y_ball < (y_block4 + 8'd20)))) ? 1'b1 : 1'b0;
 wire hit_side_block5;
-assign hit_side_block5 = ((x_block5==(x_ball+5'd20)) && (y_ball > y_block5-5'd10) && (y_ball < (y_block5 + 8'd20))) ? 1'b1 : 1'b0;
+assign hit_side_block5 = (((x_block5==(x_ball+5'd20)) && (y_ball > y_block5-5'd10) && (y_ball < (y_block5 + 8'd20))) || (((x_block5 + 11'd80)==x_ball) && (y_ball > y_block5-5'd10) && (y_ball < (y_block5 + 8'd20)))) ? 1'b1 : 1'b0;
 wire hit_side_block6;
-assign hit_side_block6 = ((x_block6==(x_ball+5'd20)) && (y_ball > y_block6-5'd10) && (y_ball < (y_block6 + 8'd20))) ? 1'b1 : 1'b0;
+assign hit_side_block6 = (((x_block6==(x_ball+5'd20)) && (y_ball > y_block6-5'd10) && (y_ball < (y_block6 + 8'd20))) || (((x_block6 + 11'd80)==x_ball) && (y_ball > y_block6-5'd10) && (y_ball < (y_block6 + 8'd20)))) ? 1'b1 : 1'b0;
 wire hit_side_block7;
-assign hit_side_block7 = ((x_block7==(x_ball+5'd20)) && (y_ball > y_block7-5'd10) && (y_ball < (y_block7 + 8'd20))) ? 1'b1 : 1'b0;
+assign hit_side_block7 = (((x_block7==(x_ball+5'd20)) && (y_ball > y_block7-5'd10) && (y_ball < (y_block7 + 8'd20))) || (((x_block7 + 11'd80)==x_ball) && (y_ball > y_block7-5'd10) && (y_ball < (y_block7 + 8'd20)))) ? 1'b1 : 1'b0;
 wire hit_side_block8;
-assign hit_side_block8 = ((x_block8==(x_ball+5'd20)) && (y_ball > y_block8-5'd10) && (y_ball < (y_block8 + 8'd20))) ? 1'b1 : 1'b0;
+assign hit_side_block8 = (((x_block8==(x_ball+5'd20)) && (y_ball > y_block8-5'd10) && (y_ball < (y_block8 + 8'd20))) || (((x_block8 + 11'd80)==x_ball) && (y_ball > y_block8-5'd10) && (y_ball < (y_block8 + 8'd20)))) ? 1'b1 : 1'b0;
 wire hit_side_block9;
-assign hit_side_block9 = ((x_block9==(x_ball+5'd20)) && (y_ball > y_block9-5'd10) && (y_ball < (y_block9 + 8'd20))) ? 1'b1 : 1'b0;
+assign hit_side_block9 = (((x_block9==(x_ball+5'd20)) && (y_ball > y_block9-5'd10) && (y_ball < (y_block9 + 8'd20))) || (((x_block9 + 11'd80)==x_ball) && (y_ball > y_block9-5'd10) && (y_ball < (y_block9 + 8'd20)))) ? 1'b1 : 1'b0;
 
 wire paddle_hit; // checks if the ball has hit the paddle
 assign paddle_hit = (((y_ball + 5'd20) == y_pad) && (x_ball > x_pad) && ((x_ball+5'd20) < (x_pad + 8'd80))) ? 1'b1 : 1'b0;
@@ -217,6 +220,8 @@ begin
 				NS = end_game;
 			else if(paddle_hit == 1'b1)
 				NS = ball_move_135;
+			else if((hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1) || hit_me == 1'd1)
+				NS = ball_move_135;
 			else if(hit_side_block1 == 1'd1 || hit_side_block2 == 1'd1 || hit_side_block3 == 1'd1 || hit_side_block4 == 1'd1 || hit_side_block5 == 1'd1 || hit_side_block6 == 1'd1 || hit_side_block7 == 1'd1 || hit_side_block8 == 1'd1 || hit_side_block9 == 1'd1)
 				NS = ball_move_315;
 			else
@@ -230,6 +235,8 @@ begin
 			else if(hit_me_low == 1'b1)
 				NS = end_game;
 			else if(paddle_hit == 1'b1)
+				NS = ball_move_45;
+			else if((hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1) || hit_me == 1'd1)
 				NS = ball_move_45;
 			else if(hit_side_block1 == 1'd1 || hit_side_block2 == 1'd1 || hit_side_block3 == 1'd1 || hit_side_block4 == 1'd1 || hit_side_block5 == 1'd1 || hit_side_block6 == 1'd1 || hit_side_block7 == 1'd1 || hit_side_block8 == 1'd1 || hit_side_block9 == 1'd1)
 				NS = ball_move_225;
@@ -588,7 +595,7 @@ begin
 	VGA_B = {8{B}};
 end
 
-//assigning colors to objects
+//assigning colors to objects ///////////////////////////////////////////////////////////////////////put in a always block to switch between screen modes
 assign R = screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && ~ball && 1'b1;
 assign B = screen_border && ~paddle && 1'b1;
 assign G = screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && 1'b1;
