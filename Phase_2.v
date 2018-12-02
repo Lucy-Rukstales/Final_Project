@@ -2,7 +2,7 @@
 
 
 module Phase_2(clk, rst, key, start_game, DAC_clk, VGA_R, VGA_G, VGA_B, VGA_Hsync, 
-					VGA_Vsync, blank_n, KB_clk, data);
+					VGA_Vsync, blank_n, KB_clk, data,begin_game);
 					
 input clk, rst;
 input KB_clk, data;
@@ -23,9 +23,9 @@ output blank_n;
 wire [10:0]xCounter;
 wire [10:0]yCounter;
 
-wire R;
-wire G;
-wire B;
+reg R;
+reg G;
+reg B;
 
 wire update;
 wire updatePad;
@@ -140,31 +140,23 @@ assign hit_side_right = ((x_ball + 5'd20) == (x_screen_border + 11'd600)) ? 1'b1
 //////////////////////////////////////////reset
 always @ (posedge update or negedge rst)
 begin
-	if (rst == 1'd0)
-		S <= 11'd0;
+	if(rst == 1'd0)
+		S <= before;
 	else
 		S <= NS;
 end
 
 ////////////////////////////////////////state transitions
-always @ (posedge update or negedge rst)
+always @(*)
 begin
 	case (S)
-		before: 
-		begin
-			if (rst == 1'd0)
+		before:
+			if(rst_game == 1'd0)
 				NS = before;
+			else if(start_game == 1'b1)
+				NS = ball_move_135;	
 			else
-				NS = start;
-		end
-
-		start:
-		begin
-			if (start_game == 1'd0)
-				NS = start;
-			else
-				NS = ball_move_135;
-		end		
+				NS = before;
 
 		ball_move_up:
 		begin
@@ -244,48 +236,61 @@ begin
 				NS = ball_move_315;
 		end
 		
-		end_game:
-			NS = end_game;	
-		default:
-			NS = before;
+		end_game: 
+			if(start_game == 1'd0)
+				NS = before;	
+			else
+				NS = end_game;
+		
+		default: NS = before;
 	endcase	
 end
 
 ////////////////////////////////////////////state definitions
 always @(posedge update or negedge rst)
 begin
-	if (rst==1'd0)
-	begin	
-		// Position the ball on the screen
-		x_ball = 11'd310;
-		y_ball = 11'd424;
-		
-		// Position the blocks on the screen
-		x_block1 = 11'd116;
-		y_block1 = 11'd20;
-		x_block2 = 11'd198;
-		y_block2 = 11'd20;
-		x_block3 = 11'd280;
-		y_block3 = 11'd20;
-		x_block4 = 11'd362;
-		y_block4 = 11'd20;
-		x_block5 = 11'd444;
-		y_block5 = 11'd20;
-		x_block6 = 11'd157;
-		y_block6 = 11'd52;
-		x_block7 = 11'd239;
-		y_block7 = 11'd52;
-		x_block8 = 11'd321;
-		y_block8 = 11'd52;
-		x_block9 = 11'd403;
-		y_block9 = 11'd52;
-		
-		x_screen_border = 11'd20;
-		y_screen_border = 11'd20;
-	end
+	if(rst == 1'd0)
+		rst_game = 1'd0;
 	else
 	begin
 		case(S)
+			before:
+			begin
+				// Set the game status controls
+				status_lose <= 1'd0;
+				status_win <= 1'd0;
+				
+				// Position the ball on the screen
+				x_ball = 11'd310;
+				y_ball = 11'd424;
+				
+				// Position the blocks on the screen
+				x_block1 = 11'd116;
+				y_block1 = 11'd20;
+				x_block2 = 11'd198;
+				y_block2 = 11'd20;
+				x_block3 = 11'd280;
+				y_block3 = 11'd20;
+				x_block4 = 11'd362;
+				y_block4 = 11'd20;
+				x_block5 = 11'd444;
+				y_block5 = 11'd20;
+				x_block6 = 11'd157;
+				y_block6 = 11'd52;
+				x_block7 = 11'd239;
+				y_block7 = 11'd52;
+				x_block8 = 11'd321;
+				y_block8 = 11'd52;
+				x_block9 = 11'd403;
+				y_block9 = 11'd52;
+				
+				x_screen_border = 11'd20;
+				y_screen_border = 11'd20;
+				
+				if(rst_game == 1'd0)
+					rst_game =1'd1;
+			end
+			
 			ball_move_up:
 			begin
 				// Check if the ball hit a brick, then delete that brick
@@ -548,14 +553,17 @@ begin
 			
 			end_game: // wut ahh final reveal
 			begin
+				status_lose = 1'd1;
+				rst_game = 1'd0;
 			end
 		endcase	
-	end	
+	end
 end
 
+// Position the paddle
 always @(posedge updatePad or negedge rst)
 begin
-	if (rst == 1'd0)
+	if(rst == 1'd0)
 	begin	
 		x_pad <= 11'd280; 
 		y_pad <= 11'd445;
@@ -564,19 +572,15 @@ begin
 	begin
 		case(direction) //push buttons
 			3'd1: 
-			begin
-				if(x_pad > 11'd0) // keep the paddle from moving too far to the left
+				if(x_pad > 5'd20)
 					x_pad <= x_pad + 11'd1; //left at a speed of "1"
 				else
-					x_pad <= x_pad;
-			end
+					x_pad <= 5'd21;
 			3'd2: 
-			begin
-				if(x_pad < 11'd625) // keep the paddle from moving too far to the right
+				if(x_pad < 11'd540)
 					x_pad <= x_pad - 11'd1; //right at a speed of "1"
 				else
-					x_pad <= x_pad;
-			end
+					x_pad <= 11'd539;
 			default: x_pad <= x_pad;
 		endcase
 	end
@@ -594,12 +598,91 @@ begin
 	VGA_B = {8{B}};
 end
 
-//assigning colors to objects ///////////////////////////////////////////////////////////////////////put in a always block to switch between screen modes
-assign R = screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && ~ball && 1'b1;
-assign B = screen_border && ~paddle && 1'b1;
-assign G = screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && 1'b1;
+///////////////////////////////////////////////////////////////////////// Screen decision
+reg [2:0]NS_Screen,S_Screen;
+parameter SS = 3'd0,RSNR = 3'd1,RSR = 3'd2,L = 3'd3,W = 3'd4;
+input begin_game;
+reg status_lose,status_win;
+reg [0:0]trigger,rst_game;
 
-	
+always @(posedge clk or negedge rst)
+begin
+	if(rst == 1'b0)
+		S_Screen <= SS;
+	else
+		S_Screen <= NS_Screen;
+end
+
+always @(*)
+begin
+	case(S_Screen)
+		SS:
+			if(rst == 1'd0 || begin_game == 1'd0)
+				NS_Screen = SS;
+			else if(begin_game == 1'd1)
+				NS_Screen = RSNR;
+		RSNR:
+			if(start_game == 1'd0)
+				NS_Screen = RSNR;
+			else
+				NS_Screen = RSR;
+		RSR:
+			if(status_win == 1'd1)
+				NS_Screen = W;
+			else if(status_lose == 1'd1)
+				NS_Screen = L;
+			else if(status_win == 1'd0 && status_lose == 1'd0)
+				NS_Screen = RSR;
+		L:
+			if(begin_game == 1'd1 || start_game == 1'b1)
+				NS_Screen = L;
+			else if(begin_game == 1'd0 && start_game == 1'b0)
+				NS_Screen = SS;
+		W:
+			if(begin_game == 1'd1 || start_game == 1'b1)
+				NS_Screen = W;
+			else if(begin_game == 1'd0 && start_game == 1'b0)
+				NS_Screen = SS;
+		default: NS_Screen = SS;
+	endcase
+end
+
+always @(posedge clk or negedge rst)
+begin
+	case(S_Screen)
+		SS:
+		begin
+			R <= 1'd0;
+			B <= 1'd1;
+			G <= 1'd0;
+		end
+		RSNR:
+		begin
+			R <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && ~ball && 1'b1;
+			B <= screen_border && ~paddle && 1'b1;
+			G <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && 1'b1;
+		end
+		RSR:
+		begin
+			// Set screen colors
+			R <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && ~ball && 1'b1;
+			B <= screen_border && ~paddle && 1'b1;
+			G <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && 1'b1;
+		end
+		L:
+		begin
+			R <= 1'd1;
+			B <= 1'd0;
+			G <= 1'd0;
+		end
+		W:
+		begin
+			R <= 1'd1;
+			B <= 1'd0;
+			G <= 1'd0;
+		end
+	endcase
+end	
 endmodule
 
 /////////////////////////////////////////////////////////////////// VGA_generator to display using VGA
@@ -696,14 +779,15 @@ module clk_reduce(clk, VGA_clk);
 	end
 endmodule
 
-module kbInput(KB_clk, key, direction);
+////////////////////////////////////////////////////////////////// decide which direction the paddle will move based off of user input
+module kbInput(KB_clk,key,direction);
 	input KB_clk;
 	input [1:0]key;
 	output reg [2:0]direction;
 
 	always @(KB_clk)
-	begin
-		if(key[1] == 1'b1 & key[0] == 1'b0)
+	begin	
+		if(key[1] == 1'b1 && key[0] == 1'b0)
 			direction = 3'd1;//left
 		else if(key[0] == 1'b1 & key[1] == 1'b0)
 			direction = 3'd2;//right
