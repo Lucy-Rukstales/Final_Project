@@ -197,14 +197,14 @@ begin
 						NS = ball_move_180;
 					else if ((x_ball + 5'd20 >= x_pad + 11'd5) && (x_ball + 5'd20 < x_pad + 5'd10)) ///left side but not edge
 						NS = ball_move_135;
-					if ((x_ball + 5'd20 >= x_pad + 11'd75) && (x_ball + 5'd20 < x_pad +        ///right edge
-						NS = ball_move_0;						
-					else if (x_ball > x_pad + 11'd60) ///right side but not edge
-						NS = ball_move_45;
-					if () ///left side
-						Ns = ball_move_225;
-					else if () ///right side
-						NS = ball_move_315;
+					//if ((x_ball + 5'd20 >= x_pad + 11'd75) && (x_ball + 5'd20 < x_pad +        ///right edge
+					//	NS = ball_move_0;						
+					//else if (x_ball > x_pad + 11'd60) ///right side but not edge
+					//	NS = ball_move_45;
+					//if () ///left side
+					//	NS = ball_move_225;
+					//else if () ///right side
+					//	NS = ball_move_315;
 					else ///center of paddle
 						NS = ball_move_up;
 				end
@@ -367,36 +367,43 @@ begin
 				begin
 					x_block3 = 11'd700;
 					y_block3 = 11'd500;
+					score <= score + 11'd1;
 				end
 				if(hit_block4 || hit_side_block4) // Delete block 4
 				begin
 					x_block4 = 11'd700;
 					y_block4 = 11'd500;
+					score <= score + 11'd1;
 				end
 				if(hit_block5 || hit_side_block5) // Delete block 5
 				begin
 					x_block5 = 11'd700;
 					y_block5 = 11'd500;
+					score <= score + 11'd1;
 				end
 				if(hit_block6 || hit_side_block6) // Delete block 6
 				begin
 					x_block6 = 11'd700;
 					y_block6 = 11'd500;
+					score <= score + 11'd1;
 				end
 				if(hit_block7 || hit_side_block7) // Delete block 7
 				begin
 					x_block7 = 11'd700;
 					y_block7 = 11'd500;
+					score <= score + 11'd1;
 				end
 				if(hit_block8 || hit_side_block8) // Delete block 8
 				begin
 					x_block8 = 11'd700;
 					y_block8 = 11'd500;
+					score <= score + 11'd1;
 				end
 				if(hit_block9 || hit_side_block9) // Delete block 9
 				begin
 					x_block9 = 11'd700;
 					y_block9 = 11'd500;
+					score <= score + 11'd1;
 				end
 				y_ball = y_ball - 11'd1;
 			end
@@ -779,15 +786,23 @@ begin
 		end
 		L:
 		begin
-			R <= 1'd1;
+			R <= 1'd1 && ~row_Lose0[0] && ~row_Lose0[1] && ~row_Lose0[2] && ~row_Lose0[3] && ~row_Lose0[4] && ~row_Lose0[5] && ~row_Lose1[0] && 
+				~row_Lose1[1] && ~row_Lose1[2] && ~row_Lose1[3] && ~row_Lose1[4] && ~row_Lose1[5] && ~row_Lose1[0] && ~row_Lose1[1] && ~row_Lose1[2] 
+				&& ~row_Lose1[3] && ~row_Lose1[4] && ~row_Lose1[5] && ~row_Lose2[0] && ~row_Lose2[1] && ~row_Lose2[2] && ~row_Lose2[3] && 
+				~row_Lose2[4] && ~row_Lose2[5] && ~row_Lose3[0] && ~row_Lose3[1] && ~row_Lose3[2] && ~row_Lose3[3] && ~row_Lose3[4] 
+				&& ~row_Lose3[5] && ~row_Lose4[0] && ~row_Lose4[1] && ~row_Lose4[2] && ~row_Lose4[3] && ~row_Lose4[4] && ~row_Lose4[5];
 			B <= 1'd0;
 			G <= 1'd0;
 		end
 		W:
 		begin
-			R <= 1'd1;
+			R <= 1'd0;
 			B <= 1'd0;
-			G <= 1'd0;
+			G <= 1'd1 && ~row_Win0[0] && ~row_Win0[1] && ~row_Win0[2] && ~row_Win0[3] && ~row_Win0[4] && ~row_Win0[5] && ~row_Win0[6] && 
+				~row_Win1[0] && ~row_Win1[1] && ~row_Win1[2] && ~row_Win1[3] && ~row_Win1[4] && ~row_Win1[5] && ~row_Win1[6] && ~row_Win2[0] 
+				&& ~row_Win2[1] && ~row_Win2[2] && ~row_Win2[3] && ~row_Win2[4] && ~row_Win2[5] && ~row_Win2[6] && ~row_Win3[0] && ~row_Win3[1]
+				&& ~row_Win3[2] && ~row_Win3[3] && ~row_Win3[4] && ~row_Win3[5] && ~row_Win4[0] && ~row_Win4[1] && ~row_Win4[2] && ~row_Win4[3]
+				&& ~row_Win4[4] && ~row_Win4[5] && ~row_Win4[6];
 		end
 	endcase
 end	
@@ -845,7 +860,83 @@ assign row4[5] = (xCounter >= 11'd283 + 11'd49  && xCounter <= 11'd310 + 11'd49 
 assign row4[6] = (xCounter >= 11'd315 + 11'd49  && xCounter <= 11'd324 + 11'd49  && yCounter >= 11'd256 && yCounter <= 11'd265) || (xCounter >= 11'd333 + 11'd49  && xCounter <= 11'd342 + 11'd49  && yCounter >= 11'd256 && yCounter <= 11'd265);//A
 assign row4[7] = (yCounter >= 11'd256 && yCounter <= 11'd265) && ((xCounter >= 11'd347 + 11'd49  && xCounter <= 11'd356 + 11'd49 ) || (xCounter >= 11'd383 + 11'd49  && xCounter <= 11'd392 + 11'd49 ));//M
 assign row4[8] = (xCounter >= 11'd397 + 11'd49  && xCounter <= 11'd424 + 11'd49  && yCounter >= 11'd256 && yCounter <= 11'd265);//E
-
+// Lose Screen
+wire [5:0]row_Lose0,row_Lose1,row_Lose2,row_Lose3,row_Lose4;
+// Row 0
+assign row_Lose0[0] = (xCounter >= 11'd225 && xCounter <= 11'd234) && (yCounter >= 11'd220 && yCounter <= 11'd229);// L
+assign row_Lose0[1] = (xCounter >= 11'd257 && xCounter <= 11'd284) && (yCounter >= 11'd220 && yCounter <= 11'd229);// O
+assign row_Lose0[2] = (xCounter >= 11'd289 && xCounter <= 11'd316) && (yCounter >= 11'd220 && yCounter <= 11'd229);// S
+assign row_Lose0[3] = (xCounter >= 11'd321 && xCounter <= 11'd348) && (yCounter >= 11'd220 && yCounter <= 11'd229);// E
+assign row_Lose0[4] = (xCounter >= 11'd353 && xCounter <= 11'd380) && (yCounter >= 11'd220 && yCounter <= 11'd229);// R
+assign row_Lose0[5] = (xCounter >= 11'd385 && xCounter <= 11'd394) && (yCounter >= 11'd220 && yCounter <= 11'd229);// !
+// Row 1
+assign row_Lose1[0] = (xCounter >= 11'd225 && xCounter <= 11'd234) && (yCounter >= 11'd229 && yCounter <= 11'd238);// L
+assign row_Lose1[1] = ((xCounter >= 11'd257 && xCounter <= 11'd266) || (xCounter >= 11'd275 && xCounter <= 11'd284)) && (yCounter >= 11'd229 && yCounter <= 11'd238);// O
+assign row_Lose1[2] = (xCounter >= 11'd289 && xCounter <= 11'd298) && (yCounter >= 11'd229 && yCounter <= 11'd238);// S
+assign row_Lose1[3] = (xCounter >= 11'd321 && xCounter <= 11'd330) && (yCounter >= 11'd229 && yCounter <= 11'd238);// E
+assign row_Lose1[4] = ((xCounter >= 11'd353 && xCounter <= 11'd362) || (xCounter >= 11'd371 && xCounter <= 11'd380)) && (yCounter >= 11'd229 && yCounter <= 11'd238);// R
+assign row_Lose1[5] = (xCounter >= 11'd385 && xCounter <= 11'd394) && (yCounter >= 11'd229 && yCounter <= 11'd238);// !
+// Row 2
+assign row_Lose2[0] = (xCounter >= 11'd225 && xCounter <= 11'd234) && (yCounter >= 11'd238 && yCounter <= 11'd247);// L
+assign row_Lose2[1] = ((xCounter >= 11'd257 && xCounter <= 11'd266) || (xCounter >= 11'd275 && xCounter <= 11'd284)) && (yCounter >= 11'd238 && yCounter <= 11'd247);// O
+assign row_Lose2[2] = (xCounter >= 11'd289 && xCounter <= 11'd316) && (yCounter >= 11'd238 && yCounter <= 11'd247);// S
+assign row_Lose2[3] = (xCounter >= 11'd321 && xCounter <= 11'd339) && (yCounter >= 11'd238 && yCounter <= 11'd247);// E
+assign row_Lose2[4] = (xCounter >= 11'd353 && xCounter <= 11'd380) && (yCounter >= 11'd238 && yCounter <= 11'd247);// R
+assign row_Lose2[5] = (xCounter >= 11'd385 && xCounter <= 11'd394) && (yCounter >= 11'd238 && yCounter <= 11'd247);// !
+// Row 3
+assign row_Lose3[0] = (xCounter >= 11'd225 && xCounter <= 11'd234) && (yCounter >= 11'd247 && yCounter <= 11'd256);// L
+assign row_Lose3[1] = ((xCounter >= 11'd257 && xCounter <= 11'd266) || (xCounter >= 11'd275 && xCounter <= 11'd284)) && (yCounter >= 11'd247 && yCounter <= 11'd256);// O
+assign row_Lose3[2] = (xCounter >= 11'd307 && xCounter <= 11'd316) && (yCounter >= 11'd247 && yCounter <= 11'd256);// S
+assign row_Lose3[3] = (xCounter >= 11'd321 && xCounter <= 11'd330) && (yCounter >= 11'd247 && yCounter <= 11'd256);// E
+assign row_Lose3[4] = (xCounter >= 11'd353 && xCounter <= 11'd371) && (yCounter >= 11'd247 && yCounter <= 11'd256);// R
+// Row 4
+assign row_Lose4[0] = (xCounter >= 11'd225 && xCounter <= 11'd252) && (yCounter >= 11'd256 && yCounter <= 11'd265);// L
+assign row_Lose4[1] = (xCounter >= 11'd257 && xCounter <= 11'd284) && (yCounter >= 11'd256 && yCounter <= 11'd265);// O
+assign row_Lose4[2] = (xCounter >= 11'd289 && xCounter <= 11'd316) && (yCounter >= 11'd256 && yCounter <= 11'd265);// S
+assign row_Lose4[3] = (xCounter >= 11'd321 && xCounter <= 11'd348) && (yCounter >= 11'd256 && yCounter <= 11'd265);// E
+assign row_Lose4[4] = ((xCounter >= 11'd353 && xCounter <= 11'd362) || (xCounter >= 11'd371 && xCounter <= 11'd380)) && (yCounter >= 11'd256 && yCounter <= 11'd265);// R
+assign row_Lose4[5] = (xCounter >= 11'd385 && xCounter <= 11'd394) && (yCounter >= 11'd256 && yCounter <= 11'd265);// !
+// Win Screen
+wire [6:0]row_Win0,row_Win1,row_Win2,row_Win3,row_Win4;
+// Row 0
+assign row_Win0[0] = ((xCounter >= 11'd200 && xCounter <= 11'd209) || (xCounter >= 11'd236 && xCounter <= 11'd245)) && (yCounter >= 11'd220 && yCounter <= 11'd229);// W
+assign row_Win0[1] = (xCounter >= 11'd250 && xCounter <= 11'd277) && (yCounter >= 11'd220 && yCounter <= 11'd229);// I
+assign row_Win0[2] = ((xCounter >= 11'd282 && xCounter <= 11'd291) || (xCounter >= 11'd309 && xCounter <= 11'd318)) && (yCounter >= 11'd220 && yCounter <= 11'd229);// N
+assign row_Win0[3] = ((xCounter >= 11'd323 && xCounter <= 11'd332) || (xCounter >= 11'd350 && xCounter <= 11'd359)) && (yCounter >= 11'd220 && yCounter <= 11'd229);// N
+assign row_Win0[4] = (xCounter >= 11'd364 && xCounter <= 11'd391) && (yCounter >= 11'd220 && yCounter <= 11'd229);// E
+assign row_Win0[5] = (xCounter >= 11'd396 && xCounter <= 11'd423) && (yCounter >= 11'd220 && yCounter <= 11'd229);// R
+assign row_Win0[6] = (xCounter >= 11'd428 && xCounter <= 11'd437) && (yCounter >= 11'd220 && yCounter <= 11'd229);// !
+// Row 1
+assign row_Win1[0] = ((xCounter >= 11'd200 && xCounter <= 11'd209) || (xCounter >= 11'd236 && xCounter <= 11'd245)) && (yCounter >= 11'd229 && yCounter <= 11'd238);// W
+assign row_Win1[1] = (xCounter >= 11'd259 && xCounter <= 11'd268) && (yCounter >= 11'd229 && yCounter <= 11'd238);// I
+assign row_Win1[2] = ((xCounter >= 11'd282 && xCounter <= 11'd300) || (xCounter >= 11'd309 && xCounter <= 11'd318)) && (yCounter >= 11'd229 && yCounter <= 11'd238);// N
+assign row_Win1[3] = ((xCounter >= 11'd323 && xCounter <= 11'd341)|| (xCounter >= 11'd350 && xCounter <= 11'd359)) && (yCounter >= 11'd229 && yCounter <= 11'd238);// N
+assign row_Win1[4] = (xCounter >= 11'd364 && xCounter <= 11'd373) && (yCounter >= 11'd229 && yCounter <= 11'd238);// E
+assign row_Win1[5] = ((xCounter >= 11'd396 && xCounter <= 11'd405) || (xCounter >= 11'd414 && xCounter <= 11'd423)) && (yCounter >= 11'd229 && yCounter <= 11'd238);// R
+assign row_Win1[6] = (xCounter >= 11'd428 && xCounter <= 11'd437) && (yCounter >= 11'd229 && yCounter <= 11'd238);// !
+// Row 2
+assign row_Win2[0] = ((xCounter >= 11'd200 && xCounter <= 11'd209) || (xCounter >= 11'd236 && xCounter <= 11'd245) || (xCounter >= 11'd218 && xCounter <= 11'd227)) && (yCounter >= 11'd238 && yCounter <= 11'd247);// W
+assign row_Win2[1] = (xCounter >= 11'd259 && xCounter <= 11'd268) && (yCounter >= 11'd238 && yCounter <= 11'd247);// I
+assign row_Win2[2] = (xCounter >= 11'd282 && xCounter <= 11'd318) && (yCounter >= 11'd238 && yCounter <= 11'd247);// N
+assign row_Win2[3] = (xCounter >= 11'd323 && xCounter <= 11'd359) && (yCounter >= 11'd238 && yCounter <= 11'd247);// N
+assign row_Win2[4] = (xCounter >= 11'd364 && xCounter <= 11'd382) && (yCounter >= 11'd238 && yCounter <= 11'd247);// E
+assign row_Win2[5] = (xCounter >= 11'd396 && xCounter <= 11'd423) && (yCounter >= 11'd238 && yCounter <= 11'd247);// R
+assign row_Win2[6] = (xCounter >= 11'd428 && xCounter <= 11'd437) && (yCounter >= 11'd238 && yCounter <= 11'd247);// !
+// Row 3
+assign row_Win3[0] = ((xCounter >= 11'd200 && xCounter <= 11'd218) || (xCounter >= 11'd227 && xCounter <= 11'd245)) && (yCounter >= 11'd247 && yCounter <= 11'd256);// W
+assign row_Win3[1] = (xCounter >= 11'd259 && xCounter <= 11'd268) && (yCounter >= 11'd247 && yCounter <= 11'd256);// I
+assign row_Win3[2] = ((xCounter >= 11'd282 && xCounter <= 11'd291) || (xCounter >= 11'd300 && xCounter <= 11'd318)) && (yCounter >= 11'd247 && yCounter <= 11'd256);// N
+assign row_Win3[3] = ((xCounter >= 11'd323 && xCounter <= 11'd332) || (xCounter >= 11'd341 && xCounter <= 11'd359)) && (yCounter >= 11'd247 && yCounter <= 11'd256);// N
+assign row_Win3[4] = (xCounter >= 11'd364 && xCounter <= 11'd373) && (yCounter >= 11'd247 && yCounter <= 11'd256);// E
+assign row_Win3[5] = (xCounter >= 11'd396 && xCounter <= 11'd414) && (yCounter >= 11'd247 && yCounter <= 11'd256);// R
+// Row 4
+assign row_Win4[0] = ((xCounter >= 11'd200 && xCounter <= 11'd209) || (xCounter >= 11'd236 && xCounter <= 11'd245)) && (yCounter >= 11'd256 && yCounter <= 11'd265);// w
+assign row_Win4[1] = (xCounter >= 11'd250 && xCounter <= 11'd277) && (yCounter >= 11'd256 && yCounter <= 11'd265);// I
+assign row_Win4[2] = ((xCounter >= 11'd282 && xCounter <= 11'd291) || (xCounter >= 11'd309 && xCounter <= 11'd318)) && (yCounter >= 11'd256 && yCounter <= 11'd265);// N
+assign row_Win4[3] = ((xCounter >= 11'd323 && xCounter <= 11'd332) || (xCounter >= 11'd350 && xCounter <= 11'd359)) && (yCounter >= 11'd256 && yCounter <= 11'd265);// N
+assign row_Win4[4] = (xCounter >= 11'd364 && xCounter <= 11'd391) && (yCounter >= 11'd256 && yCounter <= 11'd265);// E
+assign row_Win4[5] = ((xCounter >= 11'd396 && xCounter <= 11'd405) || (xCounter >= 11'd414 && xCounter <= 11'd423)) && (yCounter >= 11'd256 && yCounter <= 11'd265);// R
+assign row_Win4[6] = (xCounter >= 11'd428 && xCounter <= 11'd437) && (yCounter >= 11'd256 && yCounter <= 11'd265);// !
 endmodule
 
 /////////////////////////////////////////////////////////////////// VGA_generator to display using VGA
