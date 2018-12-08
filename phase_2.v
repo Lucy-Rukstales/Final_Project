@@ -89,7 +89,9 @@ assign block9 = (xCounter >= x_block9 && xCounter <= x_block9 + 8'd80 && yCounte
 reg [10:0]S;
 reg [10:0]NS;
 parameter before = 11'd0, start = 11'd1, ball_move_up = 11'd2, collision = 11'd3, ball_move_down = 11'd4, end_game = 11'd5, 
-			 ball_move_45 = 11'd6, ball_move_135 = 11'd7, ball_move_225 = 11'd8, ball_move_315 = 11'd9, ball_move_180 = 11'd10, ball_move_0 = 11'd11;
+			 ball_move_45 = 11'd6, ball_move_135 = 11'd7, ball_move_225 = 11'd8, ball_move_315 = 11'd9, before2 = 11'd10, ball_move_up2 = 11'd11, 
+			 ball_move_down2 = 11'd12, end_game2 = 11'd13, ball_move_452 = 11'd14, ball_move_1352 = 11'd15, ball_move_2252 = 11'd16, ball_move_3152 = 11'd17, 
+			 ball_move_180 = 11'd18, ball_move_1802 = 11'd19, ball_move_0 = 11'd20, ball_move_02 = 11'd21;
 
 // Check if the ball hits a brick from the top or bottom (bottom)
 wire hit_block1;
@@ -150,8 +152,6 @@ always @ (posedge update or negedge rst)
 begin
 	if(rst == 1'd0)
 		S <= before;
-	else if (score == 11'd9)
-		S <= end_game;
 	else
 		S <= NS;
 end
@@ -160,22 +160,23 @@ end
 always @(*)
 begin
 	case (S)
+	
+		// Level 1
+		
 		before:
+		begin
+			if(start_game == 1'b1) ///makes the ball move
 			begin
-				if(rst_game == 1'd0) ///resets the game
-					NS = before;
-				else if(start_game == 1'b1) ///makes the ball move
-					begin
-						if (start_angle45 == 1'd1)
-							NS = ball_move_45;
-						else if (start_angle90 == 1'd1)
-							NS = ball_move_up;
-						else
-							NS = ball_move_135;
-					 end	
+				if (start_angle45 == 1'd1)
+					NS = ball_move_45;
+				else if (start_angle90 == 1'd1)
+					NS = ball_move_up;
 				else
-					NS = before;
-			end	
+					NS = ball_move_135;
+			 end	
+			else
+				NS = before;
+		end	
 
 		ball_move_up:
 		begin
@@ -189,30 +190,24 @@ begin
 		begin	
 			if(hit_me_low == 1'b1)
 				NS = end_game;
-			else if (paddle_hit == 1'd0)
-				NS = ball_move_down;
 			else if (paddle_hit == 1'd1) ////
-				begin
-					if ((x_ball + 5'd20 >= x_pad) && (x_ball + 5'd20 < x_pad + 5'd5)) ///left edge
-						NS = ball_move_180;
-					else if ((x_ball + 5'd20 >= x_pad + 11'd5) && (x_ball + 5'd20 < x_pad + 5'd10)) ///left side but not edge
-						NS = ball_move_135;
-					//if ((x_ball + 5'd20 >= x_pad + 11'd75) && (x_ball + 5'd20 < x_pad +        ///right edge
-					//	NS = ball_move_0;						
-					//else if (x_ball > x_pad + 11'd60) ///right side but not edge
-					//	NS = ball_move_45;
-					//if () ///left side
-					//	NS = ball_move_225;
-					//else if () ///right side
-					//	NS = ball_move_315;
-					else ///center of paddle
-						NS = ball_move_up;
-				end
+			begin
+				if ((x_ball + 5'd20 >= x_pad) && (x_ball + 5'd20 < x_pad + 5'd5)) ///left edge
+					NS = ball_move_180;
+				else if ((x_ball + 5'd20 >= x_pad + 11'd5) && (x_ball + 5'd20 < x_pad + 5'd10)) ///left side but not edge
+					NS = ball_move_135;
+				else ///center of paddle
+					NS = ball_move_up;
+			end
+			else
+				NS = ball_move_down;
 		end
 		
 		ball_move_45:
 		begin
-			if(hit_side_right == 1'b1)
+			if(score == 11'd9)
+				NS = end_game;
+			else if(hit_side_right == 1'b1)
 				NS = ball_move_135;
 			else if(hit_me == 1'b1)
 				NS = ball_move_315;
@@ -226,7 +221,9 @@ begin
 		
 		ball_move_135:
 		begin
-			if(hit_side_left == 1'b1)
+			if(score == 11'd9)
+				NS = end_game;
+			else if(hit_side_left == 1'b1)
 				NS = ball_move_45;
 			else if(hit_me == 1'b1)
 				NS = ball_move_225;
@@ -240,10 +237,10 @@ begin
 		
 		ball_move_225:
 		begin
-			if(hit_side_left == 1'b1)
-				NS = ball_move_315;
-			else if(hit_me_low == 1'b1)
+			if(hit_me_low == 1'b1 || score == 11'd9)
 				NS = end_game;
+			else if(hit_side_left == 1'b1)
+				NS = ball_move_315;
 			else if(paddle_hit == 1'b1)
 				NS = ball_move_135;
 			else if(hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1)
@@ -256,10 +253,10 @@ begin
 		
 		ball_move_315:
 		begin
-			if(hit_side_right == 1'b1)
-				NS = ball_move_225;
-			else if(hit_me_low == 1'b1)
+			if(hit_me_low == 1'b1 || score == 11'd9)
 				NS = end_game;
+			else if(hit_side_right == 1'b1)
+				NS = ball_move_225;
 			else if(paddle_hit == 1'b1)
 				NS = ball_move_45;
 			else if(hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1)
@@ -291,10 +288,126 @@ begin
 		end
 		
 		end_game: 
-			if(start_game == 1'd0)
-				NS = before;	
+		begin
+			if(status_win == 1'd1 && start_game == 1'd0 && begin_game == 1'd1)
+				NS = before2;	
+			else if(status_lose == 1'd1 && start_game == 1'd0 && begin_game == 1'd1)
+				NS = before;
 			else
 				NS = end_game;
+		end
+			
+		// Level 2
+		
+		before2:
+		begin
+			if(start_game == 1'b1) ///makes the ball move
+			begin
+				if(start_angle45 == 1'd1)
+					NS = ball_move_452;
+				else if(start_angle90 == 1'd1)
+					NS = ball_move_up2;
+				else
+					NS = ball_move_1352;
+			end	
+			else
+				NS = before2;
+		end	
+
+		ball_move_up2:
+		begin
+			if((hit_block1 == 1'd0 && hit_block2 == 1'd0 && hit_block3 == 1'd0 && hit_block4 == 1'd0 && hit_block5 == 1'd0 && hit_block6 == 1'd0 && hit_block7 == 1'd0 && hit_block8 == 1'd0 && hit_block9 == 1'd0) && hit_me == 1'd0)
+				NS = ball_move_up2;
+			else if((hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1) || hit_me == 1'd1)
+				NS = ball_move_down2;
+		end
+			
+		ball_move_down2:
+		begin	
+			if(hit_me_low == 1'b1)
+				NS = end_game2;
+			else if (paddle_hit == 1'd0)
+				NS = ball_move_down2;
+			else if (paddle_hit == 1'd1) ////
+			begin
+				if((x_ball + 5'd20 >= x_pad) && (x_ball + 5'd20 < x_pad + 5'd5)) ///left edge
+					NS = ball_move_1802;
+				else if ((x_ball + 5'd20 >= x_pad + 11'd5) && (x_ball + 5'd20 < x_pad + 5'd10)) ///left side but not edge
+					NS = ball_move_1352;
+				else
+					NS = ball_move_up2;
+			end
+		end
+		
+		ball_move_452:
+		begin
+			if(score == 11'd9)
+				NS = end_game2;
+			else if(hit_side_right == 1'b1)
+				NS = ball_move_1352;
+			else if(hit_me == 1'b1)
+				NS = ball_move_3152;
+			else if(hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1)
+				NS = ball_move_3152;
+			else if(hit_side_block1 == 1'd1 || hit_side_block2 == 1'd1 || hit_side_block3 == 1'd1 || hit_side_block4 == 1'd1 || hit_side_block5 == 1'd1 || hit_side_block6 == 1'd1 || hit_side_block7 == 1'd1 || hit_side_block8 == 1'd1 || hit_side_block9 == 1'd1)
+				NS = ball_move_1352; 
+			else
+				NS = ball_move_452;
+		end
+		
+		ball_move_1352:
+		begin
+			if(score == 11'd9)
+				NS = end_game2;
+			else if(hit_side_left == 1'b1)
+				NS = ball_move_452;
+			else if(hit_me == 1'b1)
+				NS = ball_move_2252;
+			else if(hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1)
+				NS = ball_move_2252;
+			else if(hit_side_block1 == 1'd1 || hit_side_block2 == 1'd1 || hit_side_block3 == 1'd1 || hit_side_block4 == 1'd1 || hit_side_block5 == 1'd1 || hit_side_block6 == 1'd1 || hit_side_block7 == 1'd1 || hit_side_block8 == 1'd1 || hit_side_block9 == 1'd1)
+				NS = ball_move_452;
+			else
+				NS = ball_move_1352;
+		end
+		
+		ball_move_2252:
+		begin
+			if(hit_me_low == 1'b1 || score == 11'd9)
+				NS = end_game2;
+			else if(hit_side_left == 1'b1)
+				NS = ball_move_3152;
+			else if(paddle_hit == 1'b1)
+				NS = ball_move_1352;
+			else if(hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1)
+				NS = ball_move_1352;
+			else if(hit_side_block1 == 1'd1 || hit_side_block2 == 1'd1 || hit_side_block3 == 1'd1 || hit_side_block4 == 1'd1 || hit_side_block5 == 1'd1 || hit_side_block6 == 1'd1 || hit_side_block7 == 1'd1 || hit_side_block8 == 1'd1 || hit_side_block9 == 1'd1)
+				NS = ball_move_3152;
+			else
+				NS = ball_move_2252;
+		end
+		
+		ball_move_3152:
+		begin
+			if(hit_me_low == 1'b1 || score == 11'd9)
+				NS = end_game2;
+			else if(hit_side_right == 1'b1)
+				NS = ball_move_2252;
+			else if(paddle_hit == 1'b1)
+				NS = ball_move_452;
+			else if(hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1)
+				NS = ball_move_452;
+			else if(hit_side_block1 == 1'd1 || hit_side_block2 == 1'd1 || hit_side_block3 == 1'd1 || hit_side_block4 == 1'd1 || hit_side_block5 == 1'd1 || hit_side_block6 == 1'd1 || hit_side_block7 == 1'd1 || hit_side_block8 == 1'd1 || hit_side_block9 == 1'd1)
+				NS = ball_move_2252;
+			else 
+				NS = ball_move_3152;
+		end
+		
+		end_game2: 
+			if(start_game == 1'd0 && begin_game == 1'd1)
+				NS = before;	
+			else
+				NS = end_game2;
 		
 		default: NS = before;
 	endcase	
@@ -304,7 +417,8 @@ end
 always @(posedge update or negedge rst)
 begin
 	if(rst == 1'd0)
-		rst_game = 1'd0;
+	begin
+	end
 	else
 	begin
 		case(S)
@@ -318,34 +432,31 @@ begin
 				score <= 11'd0;
 				
 				// Position the ball on the screen
-				x_ball = x_pad + 11'd30;
-				y_ball = 11'd424;
+				x_ball <= x_pad + 11'd30;
+				y_ball <= 11'd424;
 				
 				// Position the blocks on the screen
-				x_block1 = 11'd116;
-				y_block1 = 11'd20;
-				x_block2 = 11'd198;
-				y_block2 = 11'd20;
-				x_block3 = 11'd280;
-				y_block3 = 11'd20;
-				x_block4 = 11'd362;
-				y_block4 = 11'd20;
-				x_block5 = 11'd444;
-				y_block5 = 11'd20;
-				x_block6 = 11'd157;
-				y_block6 = 11'd52;
-				x_block7 = 11'd239;
-				y_block7 = 11'd52;
-				x_block8 = 11'd321;
-				y_block8 = 11'd52;
-				x_block9 = 11'd403;
-				y_block9 = 11'd52;
+				x_block1 <= 11'd116;
+				y_block1 <= 11'd20;
+				x_block2 <= 11'd198;
+				y_block2 <= 11'd20;
+				x_block3 <= 11'd280;
+				y_block3 <= 11'd20;
+				x_block4 <= 11'd362;
+				y_block4 <= 11'd20;
+				x_block5 <= 11'd444;
+				y_block5 <= 11'd20;
+				x_block6 <= 11'd157;
+				y_block6 <= 11'd52;
+				x_block7 <= 11'd239;
+				y_block7 <= 11'd52;
+				x_block8 <= 11'd321;
+				y_block8 <= 11'd52;
+				x_block9 <= 11'd403;
+				y_block9 <= 11'd52;
 				
-				x_screen_border = 11'd20;
-				y_screen_border = 11'd20;
-				
-				if(rst_game == 1'd0)
-					rst_game =1'd1;
+				x_screen_border <= 11'd20;
+				y_screen_border <= 11'd20;
 			end
 			
 			ball_move_up:
@@ -353,335 +464,690 @@ begin
 				// Check if the ball hit a brick, then delete that brick
 				if(hit_block1 || hit_side_block1) // Delete block 1
 				begin
-					x_block1 = 11'd700;
-					y_block1 = 11'd500;
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block2 || hit_side_block2) // Delete block 2
 				begin
-					x_block2 = 11'd700;
-					y_block2 = 11'd500;
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block3 || hit_side_block3) // Delete block 3
 				begin
-					x_block3 = 11'd700;
-					y_block3 = 11'd500;
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block4 || hit_side_block4) // Delete block 4
 				begin
-					x_block4 = 11'd700;
-					y_block4 = 11'd500;
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block5 || hit_side_block5) // Delete block 5
 				begin
-					x_block5 = 11'd700;
-					y_block5 = 11'd500;
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block6 || hit_side_block6) // Delete block 6
 				begin
-					x_block6 = 11'd700;
-					y_block6 = 11'd500;
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block7 || hit_side_block7) // Delete block 7
 				begin
-					x_block7 = 11'd700;
-					y_block7 = 11'd500;
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block8 || hit_side_block8) // Delete block 8
 				begin
-					x_block8 = 11'd700;
-					y_block8 = 11'd500;
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block9 || hit_side_block9) // Delete block 9
 				begin
-					x_block9 = 11'd700;
-					y_block9 = 11'd500;
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
 					score <= score + 11'd1;
 				end
-				y_ball = y_ball - 11'd1;
+				y_ball <= y_ball - 11'd1;
 			end
 			
 			ball_move_down:
 			begin
-				y_ball = y_ball + 11'd1;
+				y_ball <= y_ball + 11'd1;
 			end
 			
 			ball_move_45:
 			begin
 				if(hit_block1 || hit_side_block1) // Delete block 1
 				begin
-					x_block1 = 11'd700;
-					y_block1 = 11'd500;
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block2 || hit_side_block2) // Delete block 2
 				begin
-					x_block2 = 11'd700;
-					y_block2 = 11'd500;
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block3 || hit_side_block3) // Delete block 3
 				begin
-					x_block3 = 11'd700;
-					y_block3 = 11'd500;
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block4 || hit_side_block4) // Delete block 4
 				begin
-					x_block4 = 11'd700;
-					y_block4 = 11'd500;
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block5 || hit_side_block5) // Delete block 5
 				begin
-					x_block5 = 11'd700;
-					y_block5 = 11'd500;
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block6 || hit_side_block6) // Delete block 6
 				begin
-					x_block6 = 11'd700;
-					y_block6 = 11'd500;
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block7 || hit_side_block7) // Delete block 7
 				begin
-					x_block7 = 11'd700;
-					y_block7 = 11'd500;
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block8 || hit_side_block8) // Delete block 8
 				begin
-					x_block8 = 11'd700;
-					y_block8 = 11'd500;
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block9 || hit_side_block9) // Delete block 9
 				begin
-					x_block9 = 11'd700;
-					y_block9 = 11'd500;
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
 					score <= score + 11'd1;
 				end
-				y_ball = y_ball - 11'd1;
-				x_ball = x_ball + 11'd1;
+				y_ball <= y_ball - 11'd1;
+				x_ball <= x_ball + 11'd1;
 			end
 			
 			ball_move_135:
 			begin
 				if(hit_block1 || hit_side_block1) // Delete block 1
 				begin
-					x_block1 = 11'd700;
-					y_block1 = 11'd500;
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block2 || hit_side_block2) // Delete block 2
 				begin
-					x_block2 = 11'd700;
-					y_block2 = 11'd500;
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block3 || hit_side_block3) // Delete block 3
 				begin
-					x_block3 = 11'd700;
-					y_block3 = 11'd500;
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block4 || hit_side_block4) // Delete block 4
 				begin
-					x_block4 = 11'd700;
-					y_block4 = 11'd500;
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block5 || hit_side_block5) // Delete block 5
 				begin
-					x_block5 = 11'd700;
-					y_block5 = 11'd500;
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block6 || hit_side_block6) // Delete block 6
 				begin
-					x_block6 = 11'd700;
-					y_block6 = 11'd500;
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block7 || hit_side_block7) // Delete block 7
 				begin
-					x_block7 = 11'd700;
-					y_block7 = 11'd500;
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block8 || hit_side_block8) // Delete block 8
 				begin
-					x_block8 = 11'd700;
-					y_block8 = 11'd500;
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block9 || hit_side_block9) // Delete block 9
 				begin
-					x_block9 = 11'd700;
-					y_block9 = 11'd500;
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
 					score <= score + 11'd1;
 				end
-				y_ball = y_ball - 11'd1;
-				x_ball = x_ball - 11'd1;
+				y_ball <= y_ball - 11'd1;
+				x_ball <= x_ball - 11'd1;
 			end
 			
 			ball_move_225:
 			begin
 				if(hit_block1 || hit_side_block1) // Delete block 1
 				begin
-					x_block1 = 11'd700;
-					y_block1 = 11'd500;
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block2 || hit_side_block2) // Delete block 2
 				begin
-					x_block2 = 11'd700;
-					y_block2 = 11'd500;
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block3 || hit_side_block3) // Delete block 3
 				begin
-					x_block3 = 11'd700;
-					y_block3 = 11'd500;
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block4 || hit_side_block4) // Delete block 4
 				begin
-					x_block4 = 11'd700;
-					y_block4 = 11'd500;
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block5 || hit_side_block5) // Delete block 5
 				begin
-					x_block5 = 11'd700;
-					y_block5 = 11'd500;
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block6 || hit_side_block6) // Delete block 6
 				begin
-					x_block6 = 11'd700;
-					y_block6 = 11'd500;
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block7 || hit_side_block7) // Delete block 7
 				begin
-					x_block7 = 11'd700;
-					y_block7 = 11'd500;
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block8 || hit_side_block8) // Delete block 8
 				begin
-					x_block8 = 11'd700;
-					y_block8 = 11'd500;
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block9 || hit_side_block9) // Delete block 9
 				begin
-					x_block9 = 11'd700;
-					y_block9 = 11'd500;
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
 					score <= score + 11'd1;
 				end
-				y_ball = y_ball + 11'd1;
-				x_ball = x_ball - 11'd1;
+				y_ball <= y_ball + 11'd1;
+				x_ball <= x_ball - 11'd1;
 			end
 			
 			ball_move_315:
 			begin
 				if(hit_block1 || hit_side_block1) // Delete block 1
 				begin
-					x_block1 = 11'd700;
-					y_block1 = 11'd500;
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block2 || hit_side_block2) // Delete block 2
 				begin
-					x_block2 = 11'd700;
-					y_block2 = 11'd500;
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block3 || hit_side_block3) // Delete block 3
 				begin
-					x_block3 = 11'd700;
-					y_block3 = 11'd500;
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block4 || hit_side_block4) // Delete block 4
 				begin
-					x_block4 = 11'd700;
-					y_block4 = 11'd500;
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block5 || hit_side_block5) // Delete block 5
 				begin
-					x_block5 = 11'd700;
-					y_block5 = 11'd500;
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block6 || hit_side_block6) // Delete block 6
 				begin
-					x_block6 = 11'd700;
-					y_block6 = 11'd500;
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block7 || hit_side_block7) // Delete block 7
 				begin
-					x_block7 = 11'd700;
-					y_block7 = 11'd500;
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block8 || hit_side_block8) // Delete block 8
 				begin
-					x_block8 = 11'd700;
-					y_block8 = 11'd500;
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
 					score <= score + 11'd1;
 				end
 				if(hit_block9 || hit_side_block9) // Delete block 9
 				begin
-					x_block9 = 11'd700;
-					y_block9 = 11'd500;
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
 					score <= score + 11'd1;
 				end
-				y_ball = y_ball + 11'd1;
-				x_ball = x_ball + 11'd1;
-			end
-			
-			ball_move_180:
-				x_ball = x_ball - 11'd1;
-				
-			ball_move_0:
-				x_ball = x_ball + 11'd1;
-				
+				y_ball <= y_ball + 11'd1;
+				x_ball <= x_ball + 11'd1;
+			end				
 			
 			end_game: // wut ahh final reveal
+			begin
+				if(score == 11'd9)
 				begin
-				if (score == 11'd9)
-					status_win = 1'd1;
-				else
-					status_lose = 1'd1;
-				rst_game = 1'd0;	
+					status_win <= 1'd1;
+					trigger <= 1'd1;
 				end
+				else
+					status_lose <= 1'd1;	
+			end
+			
+			// Level 2
+			
+			before2:
+			begin
+				// Set the game status controls
+				status_lose <= 1'd0;
+				status_win <= 1'd0;
+				
+				// Reset score
+				score <= 11'd0;
+				
+				trigger <= 11'd0;
+				
+				// Position the ball on the screen
+				x_ball <= x_pad + 11'd30;
+				y_ball <= 11'd424;
+				
+				// Position the blocks on the screen
+				x_block1 <= 11'd116;
+				y_block1 <= 11'd20;
+				x_block2 <= 11'd198;
+				y_block2 <= 11'd20;
+				x_block3 <= 11'd280;
+				y_block3 <= 11'd20;
+				x_block4 <= 11'd362;
+				y_block4 <= 11'd20;
+				x_block5 <= 11'd444;
+				y_block5 <= 11'd20;
+				x_block6 <= 11'd157;
+				y_block6 <= 11'd52;
+				x_block7 <= 11'd239;
+				y_block7 <= 11'd52;
+				x_block8 <= 11'd321;
+				y_block8 <= 11'd52;
+				x_block9 <= 11'd403;
+				y_block9 <= 11'd52;
+				
+				x_screen_border <= 11'd20;
+				y_screen_border <= 11'd20;
+			end
+			
+			ball_move_up2:
+			begin
+				// Check if the ball hit a brick, then delete that brick
+				if(hit_block1 || hit_side_block1) // Delete block 1
+				begin
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block2 || hit_side_block2) // Delete block 2
+				begin
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block3 || hit_side_block3) // Delete block 3
+				begin
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block4 || hit_side_block4) // Delete block 4
+				begin
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block5 || hit_side_block5) // Delete block 5
+				begin
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block6 || hit_side_block6) // Delete block 6
+				begin
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block7 || hit_side_block7) // Delete block 7
+				begin
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block8 || hit_side_block8) // Delete block 8
+				begin
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block9 || hit_side_block9) // Delete block 9
+				begin
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				y_ball <= y_ball - 11'd1;
+			end
+			
+			ball_move_down2:
+			begin
+				y_ball <= y_ball + 11'd1;
+			end
+			
+			ball_move_45:
+			begin
+				if(hit_block1 || hit_side_block1) // Delete block 1
+				begin
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block2 || hit_side_block2) // Delete block 2
+				begin
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block3 || hit_side_block3) // Delete block 3
+				begin
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block4 || hit_side_block4) // Delete block 4
+				begin
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block5 || hit_side_block5) // Delete block 5
+				begin
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block6 || hit_side_block6) // Delete block 6
+				begin
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block7 || hit_side_block7) // Delete block 7
+				begin
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block8 || hit_side_block8) // Delete block 8
+				begin
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block9 || hit_side_block9) // Delete block 9
+				begin
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				y_ball <= y_ball - 11'd1;
+				x_ball <= x_ball + 11'd1;
+			end
+			
+			ball_move_1352:
+			begin
+				if(hit_block1 || hit_side_block1) // Delete block 1
+				begin
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block2 || hit_side_block2) // Delete block 2
+				begin
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block3 || hit_side_block3) // Delete block 3
+				begin
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block4 || hit_side_block4) // Delete block 4
+				begin
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block5 || hit_side_block5) // Delete block 5
+				begin
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block6 || hit_side_block6) // Delete block 6
+				begin
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block7 || hit_side_block7) // Delete block 7
+				begin
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block8 || hit_side_block8) // Delete block 8
+				begin
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block9 || hit_side_block9) // Delete block 9
+				begin
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				y_ball <= y_ball - 11'd1;
+				x_ball <= x_ball - 11'd1;
+			end
+			
+			ball_move_2252:
+			begin
+				if(hit_block1 || hit_side_block1) // Delete block 1
+				begin
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block2 || hit_side_block2) // Delete block 2
+				begin
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block3 || hit_side_block3) // Delete block 3
+				begin
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block4 || hit_side_block4) // Delete block 4
+				begin
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block5 || hit_side_block5) // Delete block 5
+				begin
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block6 || hit_side_block6) // Delete block 6
+				begin
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block7 || hit_side_block7) // Delete block 7
+				begin
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block8 || hit_side_block8) // Delete block 8
+				begin
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block9 || hit_side_block9) // Delete block 9
+				begin
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				y_ball <= y_ball + 11'd1;
+				x_ball <= x_ball - 11'd1;
+			end
+			
+			ball_move_3152:
+			begin
+				if(hit_block1 || hit_side_block1) // Delete block 1
+				begin
+					x_block1 <= 11'd700;
+					y_block1 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block2 || hit_side_block2) // Delete block 2
+				begin
+					x_block2 <= 11'd700;
+					y_block2 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block3 || hit_side_block3) // Delete block 3
+				begin
+					x_block3 <= 11'd700;
+					y_block3 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block4 || hit_side_block4) // Delete block 4
+				begin
+					x_block4 <= 11'd700;
+					y_block4 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block5 || hit_side_block5) // Delete block 5
+				begin
+					x_block5 <= 11'd700;
+					y_block5 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block6 || hit_side_block6) // Delete block 6
+				begin
+					x_block6 <= 11'd700;
+					y_block6 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block7 || hit_side_block7) // Delete block 7
+				begin
+					x_block7 <= 11'd700;
+					y_block7 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block8 || hit_side_block8) // Delete block 8
+				begin
+					x_block8 <= 11'd700;
+					y_block8 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				if(hit_block9 || hit_side_block9) // Delete block 9
+				begin
+					x_block9 <= 11'd700;
+					y_block9 <= 11'd500;
+					score <= score + 11'd1;
+				end
+				y_ball <= y_ball + 11'd1;
+				x_ball <= x_ball + 11'd1;
+			end				
+			
+			end_game2: // wut ahh final reveal
+			begin
+				if(score == 11'd9)
+					status_win <= 1'd1;
+				else
+					status_lose <= 1'd1;
+			end
 		endcase	
 	end
 end
 
-// Position the paddle
+reg trigger;
 
+// Position the paddle
 always @(posedge updatePad or negedge rst)
 begin
 	if(rst == 1'd0)
-	begin	
+	begin
 		x_pad <= 11'd280; 
 		y_pad <= 11'd445;
 	end
-	else	
+	else if(trigger == 1'd1)
+	begin
+		x_pad <= 11'd280; 
+		y_pad <= 11'd445;
+	end
+	else
 	begin
 		case(direction) //push buttons
 			3'd1: 
@@ -703,7 +1169,7 @@ end
 always @(posedge VGA_clk) //border and color
 begin
 	border <= (((xCounter >= 0) && (xCounter < 11) || (xCounter >= 630) && (xCounter < 641)) 
-				|| ((yCounter >= 0) && (yCounter < 11) || (yCounter >= 470) && (yCounter < 481)));
+		|| ((yCounter >= 0) && (yCounter < 11) || (yCounter >= 470) && (yCounter < 481)));
 	VGA_R = {8{R}};
 	VGA_G = {8{G}};
 	VGA_B = {8{B}};
@@ -714,7 +1180,6 @@ reg [2:0]NS_Screen,S_Screen;
 parameter SS = 3'd0,RSNR = 3'd1,RSR = 3'd2,L = 3'd3,W = 3'd4,SS2 = 3'd5,RSNR2 = 3'd6,RSR2 = 3'd7;
 input begin_game;
 reg status_lose,status_win;
-reg [0:0]trigger,rst_game;
 
 always @(posedge clk or negedge rst)
 begin
@@ -728,37 +1193,27 @@ always @(*)
 begin
 	case(S_Screen)
 		SS:
-			if(rst == 1'd0 || begin_game == 1'd0)
-				NS_Screen = SS;
-			else if(begin_game == 1'd1)
-				NS_Screen = RSNR;
-		RSNR:
-			if(start_game == 1'd0)
+			if(begin_game == 1'd1 && rst == 1'd1)
 				NS_Screen = RSNR;
 			else
+				NS_Screen = SS;
+		RSNR:
+			if(start_game == 1'd1)
 				NS_Screen = RSR;
+			else
+				NS_Screen = RSNR;
 		RSR:
 			if(status_win == 1'd1)
 				NS_Screen = SS2;
 			else if(status_lose == 1'd1)
 				NS_Screen = L;
-			else if(status_win == 1'd0 && status_lose == 1'd0)
-				NS_Screen = RSR;
-		L:
-			if(begin_game == 1'd1 || start_game == 1'b1)
-				NS_Screen = L;
-			else if(begin_game == 1'd0 && start_game == 1'b0)
-				NS_Screen = SS;
-		W:
-			if(begin_game == 1'd1 || start_game == 1'b1)
-				NS_Screen = W;
-			else if(begin_game == 1'd0 && start_game == 1'b0)
-				NS_Screen = SS;
-		SS2:
-			if(start_game == 1'd1 || begin_game == 1'd0)
-				NS_Screen = SS2;
 			else
+				NS_Screen = RSR;
+		SS2:
+			if(begin_game == 1'd1 && start_game == 1'd0)
 				NS_Screen = RSNR2;
+			else 
+				NS_Screen = SS2;
 		
 		RSNR2:
 			if(start_game == 1'd1)
@@ -771,6 +1226,19 @@ begin
 				NS_Screen = W;
 			else if(status_lose == 1'd1)
 				NS_Screen = L;
+			else
+				NS_Screen = RSR2;
+		
+		L:
+			if(begin_game == 1'd1 && start_game == 1'b0)
+				NS_Screen = SS;
+			else
+				NS_Screen = L;
+		W:
+			if(begin_game == 1'd1 && start_game == 1'b0)
+				NS_Screen = SS;
+			else
+				NS_Screen = W;
 				
 		default: NS_Screen = SS;
 	endcase
@@ -789,19 +1257,21 @@ begin
 				~row4[5] && ~row4[6] && ~row4[7] && ~row4[8];
 			G <= 1'd0;
 		end
+		
 		RSNR:
 		begin
 			R <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && ~ball && 1'b1;
 			B <= screen_border && ~paddle && 1'b1;
 			G <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && 1'b1;
 		end
+		
 		RSR:
 		begin
-			// Set screen colors
 			R <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && ~ball && 1'b1;
 			B <= screen_border && ~paddle && 1'b1;
 			G <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && 1'b1;
 		end
+		
 		L:
 		begin
 			R <= 1'd1 && ~row_Lose0[0] && ~row_Lose0[1] && ~row_Lose0[2] && ~row_Lose0[3] && ~row_Lose0[4] && ~row_Lose0[5] && ~row_Lose1[0] && 
@@ -812,6 +1282,7 @@ begin
 			B <= 1'd0;
 			G <= 1'd0;
 		end
+		
 		W:
 		begin
 			R <= 1'd0;
@@ -822,6 +1293,7 @@ begin
 				&& ~row_Win3[2] && ~row_Win3[3] && ~row_Win3[4] && ~row_Win3[5] && ~row_Win4[0] && ~row_Win4[1] && ~row_Win4[2] && ~row_Win4[3]
 				&& ~row_Win4[4] && ~row_Win4[5] && ~row_Win4[6];
 		end
+		
 		SS2:
 		begin
 			R <= 1'd0;
@@ -840,14 +1312,13 @@ begin
 			B <= screen_border && ~paddle && 1'b1;
 			G <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && 1'b1;
 		end
+		
 		RSR2:
 		begin
-			// Set screen colors
 			R <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && ~ball && 1'b1;
 			B <= screen_border && ~paddle && 1'b1;
 			G <= screen_border && ~paddle && ~block1 && ~block2 && ~block3 && ~block4 && ~block5 && ~block6 && ~block7 && ~block8 && ~block9 && 1'b1;
 		end
-		
 	endcase
 end	
 
@@ -998,7 +1469,7 @@ assign row_level1[2] = ((xCounter >= 11'd264 && xCounter <= 11'd273) || (xCounte
 assign row_level1[3] = (xCounter >= 11'd314 && xCounter <= 11'd323) && (yCounter >= 11'd229 && yCounter <= 11'd238);// E
 assign row_level1[4] = (xCounter >= 11'd346 && xCounter <= 11'd355) && (yCounter >= 11'd229 && yCounter <= 11'd238);// L
 assign row_level1[5] = ((xCounter >= 11'd383 && xCounter <= 11'd392) || (xCounter >= 11'd401 && xCounter <= 11'd410)) && (yCounter >= 11'd229 && yCounter <= 11'd238);// U
-assign row_level1[6] = (xCounter >= 11'd415 && xCounter <= 11'd442) && (yCounter >= 11'd229 && yCounter <= 11'd238);// P
+assign row_level1[6] = ((xCounter >= 11'd415 && xCounter <= 11'd424) || (xCounter >= 11'd433 && xCounter <= 11'd442)) && (yCounter >= 11'd229 && yCounter <= 11'd238);// P
 // Row 2
 assign row_level2[0] = (xCounter >= 11'd200 && xCounter <= 11'd209) && (yCounter >= 11'd238 && yCounter <= 11'd247);// L
 assign row_level2[1] = (xCounter >= 11'd232 && xCounter <= 11'd250) && (yCounter >= 11'd238 && yCounter <= 11'd247);// E
@@ -1014,15 +1485,15 @@ assign row_level3[2] = ((xCounter >= 11'd273 && xCounter <= 11'd282) || (xCounte
 assign row_level3[3] = (xCounter >= 11'd314 && xCounter <= 11'd323) && (yCounter >= 11'd247 && yCounter <= 11'd256);// E
 assign row_level3[4] = (xCounter >= 11'd346 && xCounter <= 11'd355) && (yCounter >= 11'd247 && yCounter <= 11'd256);// L
 assign row_level3[5] = ((xCounter >= 11'd383 && xCounter <= 11'd392) || (xCounter >= 11'd401 && xCounter <= 11'd410)) && (yCounter >= 11'd247 && yCounter <= 11'd256);// U
-assign row_level3[6] = (xCounter >= 11'd415 && xCounter <= 11'd442) && (yCounter >= 11'd247 && yCounter <= 11'd256);// P
+assign row_level3[6] = (xCounter >= 11'd415 && xCounter <= 11'd424) && (yCounter >= 11'd247 && yCounter <= 11'd256);// P
 // Row 4
 assign row_level4[0] = (xCounter >= 11'd200 && xCounter <= 11'd227) && (yCounter >= 11'd256 && yCounter <= 11'd265);// L
 assign row_level4[1] = (xCounter >= 11'd232 && xCounter <= 11'd259) && (yCounter >= 11'd256 && yCounter <= 11'd265);// E
-assign row_level4[2] = (xCounter >= 11'd273 && xCounter <= 11'd2300) && (yCounter >= 11'd256 && yCounter <= 11'd265);// V
+assign row_level4[2] = (xCounter >= 11'd273 && xCounter <= 11'd300) && (yCounter >= 11'd256 && yCounter <= 11'd265);// V
 assign row_level4[3] = (xCounter >= 11'd314 && xCounter <= 11'd341) && (yCounter >= 11'd256 && yCounter <= 11'd265);// E
 assign row_level4[4] = (xCounter >= 11'd346 && xCounter <= 11'd373) && (yCounter >= 11'd256 && yCounter <= 11'd265);// L
 assign row_level4[5] = (xCounter >= 11'd383 && xCounter <= 11'd410) && (yCounter >= 11'd256 && yCounter <= 11'd265);// U
-assign row_level4[6] = (xCounter >= 11'd415 && xCounter <= 11'd442) && (yCounter >= 11'd256 && yCounter <= 11'd265);// P
+assign row_level4[6] = (xCounter >= 11'd415 && xCounter <= 11'd424) && (yCounter >= 11'd256 && yCounter <= 11'd265);// P
 endmodule
 
 /////////////////////////////////////////////////////////////////// VGA_generator to display using VGA
